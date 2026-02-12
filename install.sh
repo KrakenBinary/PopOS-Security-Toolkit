@@ -1,42 +1,62 @@
 #!/usr/bin/env bash
-REPO="YOUR_USER/popos-toolkit"
-BRANCH="main"
-BASE_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}"
-INSTALL_DIR=$(mktemp -d /tmp/popos-toolkit.XXXXXX)
+# PopOS Security Toolkit - Quick Installer
+# Usage: curl -fsSL https://raw.githubusercontent.com/KrakenBinary/PopOS-Security-Toolkit/main/install.sh | sudo bash
 
+set -e
+
+# Check if running as root
 if [[ $EUID -ne 0 ]]; then
-    echo -e "\033[1;31m✗ Must run as root: curl ... | sudo bash\033[0m"; exit 1
-fi
-if [[ ! -t 0 ]] || [[ ! -t 1 ]]; then
-    [[ -e /dev/tty ]] && exec </dev/tty >/dev/tty 2>/dev/tty || { echo "No terminal."; exit 1; }
+    echo "Error: This script must be run as root (use sudo)"
+    exit 1
 fi
 
-echo -e "\033[1;36m◈  PopOS Security Toolkit — Downloading...\033[0m"
-mkdir -p "${INSTALL_DIR}/lib" "${INSTALL_DIR}/modules"
+# Colors for output
+C_GREEN="\033[38;5;78m"
+C_CYAN="\033[38;5;81m"
+C_YELLOW="\033[38;5;220m"
+C_RED="\033[38;5;196m"
+C_RESET="\033[0m"
 
-dl() { curl -fsSL "${BASE_URL}/${1}" -o "${2}" || { echo -e "\033[1;31m✗ Failed: ${1}\033[0m"; exit 1; }; }
+echo -e "${C_CYAN}╔════════════════════════════════════════════╗${C_RESET}"
+echo -e "${C_CYAN}║  PopOS Security Toolkit - Quick Install   ║${C_RESET}"
+echo -e "${C_CYAN}╚════════════════════════════════════════════╝${C_RESET}"
+echo ""
 
-dl "run.sh"            "${INSTALL_DIR}/run.sh"
-dl "lib/tui_engine.sh" "${INSTALL_DIR}/lib/tui_engine.sh"
-dl "lib/registry.sh"   "${INSTALL_DIR}/lib/registry.sh"
-dl "lib/runner.sh"     "${INSTALL_DIR}/lib/runner.sh"
-dl "lib/app.sh"        "${INSTALL_DIR}/lib/app.sh"
+# Set installation directory
+INSTALL_DIR="/opt/popos-toolkit"
 
-for m in nmap masscan netcat aircrack_ng reaver wifite metasploit beef john hashcat hydra wireshark tcpdump bettercap burpsuite sqlmap gobuster theharvester maltego; do
-    dl "modules/${m}.sh" "${INSTALL_DIR}/modules/${m}.sh"
-done
-echo -e "\033[1;32m✓ Downloaded all modules.\033[0m"
+# Check if git is installed
+if ! command -v git &>/dev/null; then
+    echo -e "${C_YELLOW}Installing git...${C_RESET}"
+    apt-get update -qq
+    apt-get install -y git
+fi
 
-export TOOLKIT_DIR="$INSTALL_DIR" LIB_DIR="${INSTALL_DIR}/lib" SCRIPT_DIR="${INSTALL_DIR}/modules"
-export APP_TITLE="  ◈  PopOS Security Toolkit  ◈  " DEBUG_LOG="${INSTALL_DIR}/debug.log"
+# Remove old installation if exists
+if [[ -d "$INSTALL_DIR" ]]; then
+    echo -e "${C_YELLOW}Removing old installation...${C_RESET}"
+    rm -rf "$INSTALL_DIR"
+fi
 
-cleanup() {
-    tput cnorm 2>/dev/null; tput rmcup 2>/dev/null
-    stty sane 2>/dev/null; echo -ne "\033[0m"; clear
-    rm -rf "${INSTALL_DIR}"
-    echo -e "\033[1;36m◈  PopOS Security Toolkit — Goodbye!\033[0m"
-}
-trap cleanup EXIT INT TERM
-chmod +x "${INSTALL_DIR}/run.sh"
-source "${INSTALL_DIR}/lib/app.sh"
-run_app
+# Clone repository
+echo -e "${C_CYAN}Downloading PopOS Security Toolkit...${C_RESET}"
+git clone https://github.com/KrakenBinary/PopOS-Security-Toolkit.git "$INSTALL_DIR"
+
+# Make executable
+chmod +x "$INSTALL_DIR/run.sh"
+
+# Create symlink in /usr/local/bin
+if [[ -L /usr/local/bin/popos-toolkit ]]; then
+    rm /usr/local/bin/popos-toolkit
+fi
+ln -s "$INSTALL_DIR/run.sh" /usr/local/bin/popos-toolkit
+
+echo ""
+echo -e "${C_GREEN}✓ Installation complete!${C_RESET}"
+echo ""
+echo -e "${C_CYAN}Run the toolkit with:${C_RESET}"
+echo -e "  ${C_YELLOW}sudo popos-toolkit${C_RESET}"
+echo ""
+echo -e "${C_CYAN}Or directly:${C_RESET}"
+echo -e "  ${C_YELLOW}cd $INSTALL_DIR && sudo ./run.sh${C_RESET}"
+echo ""
