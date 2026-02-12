@@ -3,7 +3,14 @@
 # Associative array lookups on missing keys + read timeouts both
 # return non-zero which set -e/set -u treat as fatal.
 
-TOOLKIT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Resolve symlinks to get the actual script location
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+    DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+TOOLKIT_DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
 LIB_DIR="${TOOLKIT_DIR}/lib"
 SCRIPT_DIR="${TOOLKIT_DIR}/modules"
 APP_TITLE="  ◈  PopOS Security Toolkit  ◈  "
