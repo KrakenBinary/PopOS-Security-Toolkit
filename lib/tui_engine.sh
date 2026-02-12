@@ -170,6 +170,8 @@ read_key() {
         echo "clear"
     elif [[ "$key" == "r" || "$key" == "R" ]]; then
         echo "refresh"
+    elif [[ "$key" == $'\x7f' || "$key" == $'\x08' ]]; then
+        echo "backspace"
     else
         echo "$key"
     fi

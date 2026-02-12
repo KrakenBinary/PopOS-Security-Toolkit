@@ -11,6 +11,9 @@ DEBUG_LOG="${TOOLKIT_DIR}/debug.log"
 
 export TOOLKIT_DIR LIB_DIR SCRIPT_DIR APP_TITLE DEBUG_LOG
 
+# Source installation helpers
+source "${LIB_DIR}/install_helpers.sh"
+
 # ─── Debug Logger ───────────────────────────────────────────────
 : > "$DEBUG_LOG"
 dbg() { echo "[$(date +%H:%M:%S)] $*" >> "$DEBUG_LOG" 2>/dev/null; }

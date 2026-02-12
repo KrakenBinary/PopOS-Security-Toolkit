@@ -6,7 +6,10 @@
 source "${LIB_DIR}/tui_engine.sh"
 source "${LIB_DIR}/registry.sh"
 source "${LIB_DIR}/runner.sh"
+source "${LIB_DIR}/config.sh"
+source "${LIB_DIR}/config_ui.sh"
 
+APP_MODE="tools"  # "tools" or "config"
 FOCUS=0
 CAT_IDX=0
 TOOL_IDX=0
@@ -238,7 +241,12 @@ draw_status_bar() {
     local left=" ◆ ${qi} install  ◇ ${qu} uninstall"
     if (( IS_PROCESSING )); then left+="  ⟳ Processing..."; fi
 
-    local keys="  ←→ Focus  ↑↓ Nav  SPACE Toggle  A Apply  C Clear  R Refresh  Q Quit  "
+    local keys
+    if [[ "$APP_MODE" == "config" ]]; then
+        keys="  T Tools  ↑↓ Nav  ENTER Edit  S Save  Q Quit  "
+    else
+        keys="  T Config  ←→ Focus  ↑↓ Nav  SPACE Toggle  A Apply  C Clear  R Refresh  Q Quit  "
+    fi
 
     print_at "$y" 2 "$(( w / 2 ))" "$left" "${C[bar_bg]}"
     local kx=$(( w - ${#keys} ))
@@ -251,13 +259,43 @@ draw_status_bar() {
 full_draw() {
     buf_clear
     buf_add "\033[2J"
-    draw_title_bar
-    draw_categories
-    draw_tools
-    draw_description
-    draw_log
-    draw_status_bar
-    buf_flush
+
+    if [[ "$APP_MODE" == "config" ]]; then
+        # Config mode rendering
+        draw_config_mode
+        buf_flush
+    else
+        # Tools mode rendering
+        draw_title_bar
+        draw_categories
+        draw_tools
+        draw_description
+        draw_log
+        draw_status_bar
+        buf_flush
+    fi
+}
+
+# ─── Quit Handler ──────────────────────────────────────────────
+
+handle_quit() {
+    local counts qi qu
+    counts=$(count_queued)
+    qi="${counts%% *}"
+    qu="${counts##* }"
+    if (( qi + qu > 0 )); then
+        log_msg "yellow" "⚠ Queued items pending. Q again to quit, A to apply."
+        NEEDS_REDRAW=1
+        full_draw
+        local confirm=""
+        confirm=$(read_key 2>/dev/null) || confirm=""
+        if [[ "$confirm" == "quit" ]]; then
+            return 1
+        fi
+    else
+        return 1
+    fi
+    return 0
 }
 
 # ─── Input Handler ─────────────────────────────────────────────
@@ -268,6 +306,22 @@ handle_input() {
 
     if [[ -z "$key" ]]; then return 0; fi
 
+    # Route to config mode if active
+    if [[ "$APP_MODE" == "config" ]]; then
+        handle_config_input "$key"
+        return 0
+    fi
+
+    # Handle mode toggle
+    if [[ "$key" == "t" || "$key" == "T" ]]; then
+        APP_MODE="config"
+        CONFIG_SCREEN="main"
+        CONFIG_SELECTED_IDX=0
+        NEEDS_REDRAW=1
+        return 0
+    fi
+
+    # Tools mode input handling
     case "$key" in
         up)
             if (( FOCUS == 0 )); then
@@ -339,22 +393,7 @@ handle_input() {
             NEEDS_REDRAW=1
             ;;
         quit)
-            local counts qi qu
-            counts=$(count_queued)
-            qi="${counts%% *}"
-            qu="${counts##* }"
-            if (( qi + qu > 0 )); then
-                log_msg "yellow" "⚠ Queued items pending. Q again to quit, A to apply."
-                NEEDS_REDRAW=1
-                full_draw
-                local confirm=""
-                confirm=$(read_key 2>/dev/null) || confirm=""
-                if [[ "$confirm" == "quit" ]]; then
-                    return 1
-                fi
-            else
-                return 1
-            fi
+            handle_quit && return 0 || return 1
             ;;
         unknown|escape)
             # Ignore unknown keys
@@ -382,6 +421,11 @@ run_app() {
 
     log_msg "cyan" "◈ PopOS Security Toolkit starting..."
     log_msg "text_dim" "Loading tool modules..."
+
+    # Initialize configuration system
+    config_init
+    config_load
+    dbg "run_app: config system initialized"
 
     load_modules
     dbg "run_app: modules loaded (${#ALL_TOOL_IDS[@]} tools, ${#CATEGORIES[@]} categories)"
