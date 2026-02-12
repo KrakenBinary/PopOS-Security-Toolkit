@@ -2,7 +2,7 @@
 # lib/config_ui.sh - Configuration UI components
 
 # Config UI state
-CONFIG_SCREEN="main"  # main, git, github
+CONFIG_SCREEN="main"  # main, git, github, gh
 CONFIG_SELECTED_IDX=0
 CONFIG_EDITING_FIELD=""
 CONFIG_EDIT_VALUE=""
@@ -21,6 +21,9 @@ draw_config_mode() {
         github)
             draw_config_github
             ;;
+        gh)
+            draw_config_gh
+            ;;
         *)
             draw_config_main
             ;;
@@ -36,57 +39,55 @@ draw_config_main() {
 
     # Draw title
     buf_add "$(tput cup $row $col)"
-    buf_add "${\${C[cyan]}}╔$(printf '═%.0s' $(seq 1 $((width - 2))))╗${\${C[reset]}}"
+    buf_add "${C[cyan]}╔$(printf '═%.0s' $(seq 1 $((width - 2))))╗${C[reset]}"
     ((row++))
 
     buf_add "$(tput cup $row $col)"
     local title="Configuration Menu"
     local padding=$(( (width - ${#title} - 2) / 2 ))
-    buf_add "${\${C[cyan]}}║${\${C[reset]}}$(printf ' %.0s' $(seq 1 $padding))"
-    buf_add "${\${C[bold]}}${\${C[white]}}$title${\${C[reset]}}"
+    buf_add "${C[cyan]}║${C[reset]}$(printf ' %.0s' $(seq 1 $padding))"
+    buf_add "${C[bold]}${C[white]}$title${C[reset]}"
     buf_add "$(printf ' %.0s' $(seq 1 $((width - ${#title} - padding - 2))))"
-    buf_add "${\${C[cyan]}}║${\${C[reset]}}"
+    buf_add "${C[cyan]}║${C[reset]}"
     ((row++))
 
     buf_add "$(tput cup $row $col)"
-    buf_add "${\${C[cyan]}}╠$(printf '═%.0s' $(seq 1 $((width - 2))))╣${\${C[reset]}}"
+    buf_add "${C[cyan]}╠$(printf '═%.0s' $(seq 1 $((width - 2))))╣${C[reset]}"
     ((row++))
 
     # Configuration options
     local options=(
-        "Git Configuration"
-        "GitHub Configuration"
+        "GitHub CLI Configuration"
     )
     local descriptions=(
-        "Set git user.name and user.email"
-        "Configure SSH key and GitHub token"
+        "Authenticate gh and set git protocol"
     )
 
     local i=0
     for option in "${options[@]}"; do
         buf_add "$(tput cup $row $col)"
-        buf_add "${\${C[cyan]}}║${\${C[reset]}} "
+        buf_add "${C[cyan]}║${C[reset]} "
 
         if [[ $i -eq $CONFIG_SELECTED_IDX ]]; then
-            buf_add "${\${C[highlight]}}${\${C[white]}} ▶ $option "
+            buf_add "${C[highlight]}${C[white]} ▶ $option "
             local padding_len=$((width - ${#option} - 6))
             buf_add "$(printf ' %.0s' $(seq 1 $padding_len))"
-            buf_add "${\${C[reset]}}"
+            buf_add "${C[reset]}"
         else
             buf_add "   $option"
             local padding_len=$((width - ${#option} - 5))
             buf_add "$(printf ' %.0s' $(seq 1 $padding_len))"
         fi
 
-        buf_add " ${\${C[cyan]}}║${\${C[reset]}}"
+        buf_add " ${C[cyan]}║${C[reset]}"
         ((row++))
 
         # Description
         buf_add "$(tput cup $row $col)"
-        buf_add "${\${C[cyan]}}║${\${C[reset]}}     ${\${C[dim]}}${descriptions[$i]}${\${C[reset]}}"
+        buf_add "${C[cyan]}║${C[reset]}     ${C[dim]}${descriptions[$i]}${C[reset]}"
         local desc_padding=$((width - ${#descriptions[$i]} - 7))
         buf_add "$(printf ' %.0s' $(seq 1 $desc_padding))"
-        buf_add " ${\${C[cyan]}}║${\${C[reset]}}"
+        buf_add " ${C[cyan]}║${C[reset]}"
         ((row++))
 
         ((i++))
@@ -95,18 +96,18 @@ draw_config_main() {
     # Fill remaining space
     while [[ $row -lt $((TERM_ROWS - 2)) ]]; do
         buf_add "$(tput cup $row $col)"
-        buf_add "${\${C[cyan]}}║${\${C[reset]}}$(printf ' %.0s' $(seq 1 $((width - 2))))${\${C[cyan]}}║${\${C[reset]}}"
+        buf_add "${C[cyan]}║${C[reset]}$(printf ' %.0s' $(seq 1 $((width - 2))))${C[cyan]}║${C[reset]}"
         ((row++))
     done
 
     # Bottom border
     buf_add "$(tput cup $row $col)"
-    buf_add "${\${C[cyan]}}╚$(printf '═%.0s' $(seq 1 $((width - 2))))╝${\${C[reset]}}"
+    buf_add "${C[cyan]}╚$(printf '═%.0s' $(seq 1 $((width - 2))))╝${C[reset]}"
 
     # Help text at bottom
     ((row++))
     buf_add "$(tput cup $row $col)"
-    buf_add "${\${C[dim]}}↑↓: Navigate  ENTER: Select  T: Return to Tools  Q: Quit${\${C[reset]}}"
+    buf_add "${C[dim]}↑↓: Navigate  ENTER: Select  T: Return to Tools  Q: Quit${C[reset]}"
 }
 
 # draw_config_git - Git configuration screen
@@ -118,20 +119,20 @@ draw_config_git() {
 
     # Draw title
     buf_add "$(tput cup $row $col)"
-    buf_add "${\${C[cyan]}}╔$(printf '═%.0s' $(seq 1 $((width - 2))))╗${\${C[reset]}}"
+    buf_add "${C[cyan]}╔$(printf '═%.0s' $(seq 1 $((width - 2))))╗${C[reset]}"
     ((row++))
 
     buf_add "$(tput cup $row $col)"
     local title="Git Configuration"
     local padding=$(( (width - ${#title} - 2) / 2 ))
-    buf_add "${\${C[cyan]}}║${\${C[reset]}}$(printf ' %.0s' $(seq 1 $padding))"
-    buf_add "${\${C[bold]}}${\${C[white]}}$title${\${C[reset]}}"
+    buf_add "${C[cyan]}║${C[reset]}$(printf ' %.0s' $(seq 1 $padding))"
+    buf_add "${C[bold]}${C[white]}$title${C[reset]}"
     buf_add "$(printf ' %.0s' $(seq 1 $((width - ${#title} - padding - 2))))"
-    buf_add "${\${C[cyan]}}║${\${C[reset]}}"
+    buf_add "${C[cyan]}║${C[reset]}"
     ((row++))
 
     buf_add "$(tput cup $row $col)"
-    buf_add "${\${C[cyan]}}╠$(printf '═%.0s' $(seq 1 $((width - 2))))╣${\${C[reset]}}"
+    buf_add "${C[cyan]}╠$(printf '═%.0s' $(seq 1 $((width - 2))))╣${C[reset]}"
     ((row++))
 
     # Get current values
@@ -148,14 +149,14 @@ draw_config_git() {
     local i=0
     for field in "${fields[@]}"; do
         buf_add "$(tput cup $row $col)"
-        buf_add "${\${C[cyan]}}║${\${C[reset]}} "
+        buf_add "${C[cyan]}║${C[reset]} "
 
         local is_selected=0
         [[ $i -eq $CONFIG_SELECTED_IDX ]] && is_selected=1
 
         # Label
         if [[ $is_selected -eq 1 ]]; then
-            buf_add "${\${C[yellow]}}▶ ${labels[$i]}${\${C[reset]}}"
+            buf_add "${C[yellow]}▶ ${labels[$i]}${C[reset]}"
         else
             buf_add "  ${labels[$i]}"
         fi
@@ -169,16 +170,16 @@ draw_config_git() {
         if [[ "$CONFIG_EDITING_FIELD" == "$field" ]]; then
             # Show edit value with cursor
             display_value="$CONFIG_EDIT_VALUE"
-            buf_add "${\${C[highlight]}}${\${C[white]}}"
+            buf_add "${C[highlight]}${C[white]}"
             buf_add "$display_value"
             buf_add "█"  # Cursor
             local value_padding=$((width - 25 - ${#display_value} - 1))
             buf_add "$(printf ' %.0s' $(seq 1 $value_padding))"
-            buf_add "${\${C[reset]}}"
+            buf_add "${C[reset]}"
         else
             # Show current value
             if [[ -z "$display_value" ]]; then
-                display_value="${\${C[dim]}}(not set)${\${C[reset]}}"
+                display_value="${C[dim]}(not set)${C[reset]}"
                 buf_add "$display_value"
                 local value_padding=$((width - 25 - 9))
                 buf_add "$(printf ' %.0s' $(seq 1 $value_padding))"
@@ -189,42 +190,42 @@ draw_config_git() {
             fi
         fi
 
-        buf_add " ${\${C[cyan]}}║${\${C[reset]}}"
+        buf_add " ${C[cyan]}║${C[reset]}"
         ((row++))
         ((i++))
     done
 
     # Empty line
     buf_add "$(tput cup $row $col)"
-    buf_add "${\${C[cyan]}}║${\${C[reset]}}$(printf ' %.0s' $(seq 1 $((width - 2))))${\${C[cyan]}}║${\${C[reset]}}"
+    buf_add "${C[cyan]}║${C[reset]}$(printf ' %.0s' $(seq 1 $((width - 2))))${C[cyan]}║${C[reset]}"
     ((row++))
 
     # Info about what will happen
     buf_add "$(tput cup $row $col)"
-    buf_add "${\${C[cyan]}}║${\${C[reset]}} ${\${C[dim]}}Changes will be applied to git config --global${\${C[reset]}}"
+    buf_add "${C[cyan]}║${C[reset]} ${C[dim]}Changes will be applied to git config --global${C[reset]}"
     local info_padding=$((width - 47))
     buf_add "$(printf ' %.0s' $(seq 1 $info_padding))"
-    buf_add "${\${C[cyan]}}║${\${C[reset]}}"
+    buf_add "${C[cyan]}║${C[reset]}"
     ((row++))
 
     # Fill remaining space
     while [[ $row -lt $((TERM_ROWS - 2)) ]]; do
         buf_add "$(tput cup $row $col)"
-        buf_add "${\${C[cyan]}}║${\${C[reset]}}$(printf ' %.0s' $(seq 1 $((width - 2))))${\${C[cyan]}}║${\${C[reset]}}"
+        buf_add "${C[cyan]}║${C[reset]}$(printf ' %.0s' $(seq 1 $((width - 2))))${C[cyan]}║${C[reset]}"
         ((row++))
     done
 
     # Bottom border
     buf_add "$(tput cup $row $col)"
-    buf_add "${\${C[cyan]}}╚$(printf '═%.0s' $(seq 1 $((width - 2))))╝${\${C[reset]}}"
+    buf_add "${C[cyan]}╚$(printf '═%.0s' $(seq 1 $((width - 2))))╝${C[reset]}"
 
     # Help text
     ((row++))
     buf_add "$(tput cup $row $col)"
     if [[ -n "$CONFIG_EDITING_FIELD" ]]; then
-        buf_add "${\${C[dim]}}Type to edit  ENTER: Save  ESC: Cancel${\${C[reset]}}"
+        buf_add "${C[dim]}Type to edit  ENTER: Save  ESC: Cancel${C[reset]}"
     else
-        buf_add "${\${C[dim]}}↑↓: Navigate  ENTER: Edit  S: Save & Apply  ESC: Back  Q: Quit${\${C[reset]}}"
+        buf_add "${C[dim]}↑↓: Navigate  ENTER: Edit  S: Save & Apply  ESC: Back  Q: Quit${C[reset]}"
     fi
 }
 
@@ -237,20 +238,20 @@ draw_config_github() {
 
     # Draw title
     buf_add "$(tput cup $row $col)"
-    buf_add "${\${C[cyan]}}╔$(printf '═%.0s' $(seq 1 $((width - 2))))╗${\${C[reset]}}"
+    buf_add "${C[cyan]}╔$(printf '═%.0s' $(seq 1 $((width - 2))))╗${C[reset]}"
     ((row++))
 
     buf_add "$(tput cup $row $col)"
     local title="GitHub Configuration"
     local padding=$(( (width - ${#title} - 2) / 2 ))
-    buf_add "${\${C[cyan]}}║${\${C[reset]}}$(printf ' %.0s' $(seq 1 $padding))"
-    buf_add "${\${C[bold]}}${\${C[white]}}$title${\${C[reset]}}"
+    buf_add "${C[cyan]}║${C[reset]}$(printf ' %.0s' $(seq 1 $padding))"
+    buf_add "${C[bold]}${C[white]}$title${C[reset]}"
     buf_add "$(printf ' %.0s' $(seq 1 $((width - ${#title} - padding - 2))))"
-    buf_add "${\${C[cyan]}}║${\${C[reset]}}"
+    buf_add "${C[cyan]}║${C[reset]}"
     ((row++))
 
     buf_add "$(tput cup $row $col)"
-    buf_add "${\${C[cyan]}}╠$(printf '═%.0s' $(seq 1 $((width - 2))))╣${\${C[reset]}}"
+    buf_add "${C[cyan]}╠$(printf '═%.0s' $(seq 1 $((width - 2))))╣${C[reset]}"
     ((row++))
 
     # Get current values
@@ -267,14 +268,14 @@ draw_config_github() {
     local i=0
     for field in "${fields[@]}"; do
         buf_add "$(tput cup $row $col)"
-        buf_add "${\${C[cyan]}}║${\${C[reset]}} "
+        buf_add "${C[cyan]}║${C[reset]} "
 
         local is_selected=0
         [[ $i -eq $CONFIG_SELECTED_IDX ]] && is_selected=1
 
         # Label
         if [[ $is_selected -eq 1 ]]; then
-            buf_add "${\${C[yellow]}}▶ ${labels[$i]}${\${C[reset]}}"
+            buf_add "${C[yellow]}▶ ${labels[$i]}${C[reset]}"
         else
             buf_add "  ${labels[$i]}"
         fi
@@ -297,24 +298,24 @@ draw_config_github() {
                 else
                     masked="$display_value"
                 fi
-                buf_add "${\${C[highlight]}}${\${C[white]}}"
+                buf_add "${C[highlight]}${C[white]}"
                 buf_add "$masked"
                 buf_add "█"  # Cursor
                 local value_padding=$((width - 25 - ${#masked} - 1))
                 buf_add "$(printf ' %.0s' $(seq 1 $value_padding))"
-                buf_add "${\${C[reset]}}"
+                buf_add "${C[reset]}"
             else
-                buf_add "${\${C[highlight]}}${\${C[white]}}"
+                buf_add "${C[highlight]}${C[white]}"
                 buf_add "$display_value"
                 buf_add "█"  # Cursor
                 local value_padding=$((width - 25 - ${#display_value} - 1))
                 buf_add "$(printf ' %.0s' $(seq 1 $value_padding))"
-                buf_add "${\${C[reset]}}"
+                buf_add "${C[reset]}"
             fi
         else
             # Show current value
             if [[ -z "$display_value" ]]; then
-                display_value="${\${C[dim]}}(not set)${\${C[reset]}}"
+                display_value="${C[dim]}(not set)${C[reset]}"
                 buf_add "$display_value"
                 local value_padding=$((width - 25 - 9))
                 buf_add "$(printf ' %.0s' $(seq 1 $value_padding))"
@@ -332,16 +333,16 @@ draw_config_github() {
             fi
         fi
 
-        buf_add " ${\${C[cyan]}}║${\${C[reset]}}"
+        buf_add " ${C[cyan]}║${C[reset]}"
         ((row++))
 
         # Extra action for SSH key
         if [[ "$field" == "ssh_key_path" && $is_selected -eq 1 && -z "$CONFIG_EDITING_FIELD" ]]; then
             buf_add "$(tput cup $row $col)"
-            buf_add "${\${C[cyan]}}║${\${C[reset]}}     ${\${C[dim]}}Press G to generate new SSH key${\${C[reset]}}"
+            buf_add "${C[cyan]}║${C[reset]}     ${C[dim]}Press G to generate new SSH key${C[reset]}"
             local hint_padding=$((width - 36))
             buf_add "$(printf ' %.0s' $(seq 1 $hint_padding))"
-            buf_add "${\${C[cyan]}}║${\${C[reset]}}"
+            buf_add "${C[cyan]}║${C[reset]}"
             ((row++))
         fi
 
@@ -350,16 +351,16 @@ draw_config_github() {
 
     # Empty line
     buf_add "$(tput cup $row $col)"
-    buf_add "${\${C[cyan]}}║${\${C[reset]}}$(printf ' %.0s' $(seq 1 $((width - 2))))${\${C[cyan]}}║${\${C[reset]}}"
+    buf_add "${C[cyan]}║${C[reset]}$(printf ' %.0s' $(seq 1 $((width - 2))))${C[cyan]}║${C[reset]}"
     ((row++))
 
     # Show public key if available
     if [[ -n "$ssh_key_path" && -f "${ssh_key_path}.pub" ]]; then
         buf_add "$(tput cup $row $col)"
-        buf_add "${\${C[cyan]}}║${\${C[reset]}} ${\${C[green]}}SSH Public Key:${\${C[reset]}}"
+        buf_add "${C[cyan]}║${C[reset]} ${C[green]}SSH Public Key:${C[reset]}"
         local pubkey_padding=$((width - 18))
         buf_add "$(printf ' %.0s' $(seq 1 $pubkey_padding))"
-        buf_add "${\${C[cyan]}}║${\${C[reset]}}"
+        buf_add "${C[cyan]}║${C[reset]}"
         ((row++))
 
         local pubkey
@@ -369,32 +370,173 @@ draw_config_github() {
             pubkey="${pubkey:0:$((width - 7))}..."
         fi
         buf_add "$(tput cup $row $col)"
-        buf_add "${\${C[cyan]}}║${\${C[reset]}} ${\${C[dim]}}$pubkey${\${C[reset]}}"
+        buf_add "${C[cyan]}║${C[reset]} ${C[dim]}$pubkey${C[reset]}"
         local pubkey_padding=$((width - ${#pubkey} - 3))
         buf_add "$(printf ' %.0s' $(seq 1 $pubkey_padding))"
-        buf_add "${\${C[cyan]}}║${\${C[reset]}}"
+        buf_add "${C[cyan]}║${C[reset]}"
         ((row++))
     fi
 
     # Fill remaining space
     while [[ $row -lt $((TERM_ROWS - 2)) ]]; do
         buf_add "$(tput cup $row $col)"
-        buf_add "${\${C[cyan]}}║${\${C[reset]}}$(printf ' %.0s' $(seq 1 $((width - 2))))${\${C[cyan]}}║${\${C[reset]}}"
+        buf_add "${C[cyan]}║${C[reset]}$(printf ' %.0s' $(seq 1 $((width - 2))))${C[cyan]}║${C[reset]}"
         ((row++))
     done
 
     # Bottom border
     buf_add "$(tput cup $row $col)"
-    buf_add "${\${C[cyan]}}╚$(printf '═%.0s' $(seq 1 $((width - 2))))╝${\${C[reset]}}"
+    buf_add "${C[cyan]}╚$(printf '═%.0s' $(seq 1 $((width - 2))))╝${C[reset]}"
 
     # Help text
     ((row++))
     buf_add "$(tput cup $row $col)"
     if [[ -n "$CONFIG_EDITING_FIELD" ]]; then
-        buf_add "${\${C[dim]}}Type to edit  ENTER: Save  ESC: Cancel${\${C[reset]}}"
+        buf_add "${C[dim]}Type to edit  ENTER: Save  ESC: Cancel${C[reset]}"
     else
-        buf_add "${\${C[dim]}}↑↓: Navigate  ENTER: Edit  G: Generate Key  S: Save  ESC: Back  Q: Quit${\${C[reset]}}"
+        buf_add "${C[dim]}↑↓: Navigate  ENTER: Edit  G: Generate Key  S: Save  ESC: Back  Q: Quit${C[reset]}"
     fi
+}
+
+# draw_config_gh - GitHub CLI configuration screen
+draw_config_gh() {
+    local row=2
+    local col=2
+    local width=$((TERM_COLS - 4))
+    local height=$((TERM_ROWS - 4))
+
+    # Draw title
+    buf_add "$(tput cup $row $col)"
+    buf_add "${C[cyan]}╔$(printf '═%.0s' $(seq 1 $((width - 2))))╗${C[reset]}"
+    ((row++))
+
+    buf_add "$(tput cup $row $col)"
+    local title="GitHub CLI Configuration"
+    local padding=$(( (width - ${#title} - 2) / 2 ))
+    buf_add "${C[cyan]}║${C[reset]}$(printf ' %.0s' $(seq 1 $padding))"
+    buf_add "${C[bold]}${C[white]}$title${C[reset]}"
+    buf_add "$(printf ' %.0s' $(seq 1 $((width - ${#title} - padding - 2))))"
+    buf_add "${C[cyan]}║${C[reset]}"
+    ((row++))
+
+    buf_add "$(tput cup $row $col)"
+    buf_add "${C[cyan]}╠$(printf '═%.0s' $(seq 1 $((width - 2))))╣${C[reset]}"
+    ((row++))
+
+    # Check gh authentication status
+    local auth_status="Not Authenticated"
+    local auth_color="${C[red]}"
+    if command -v gh &>/dev/null; then
+        if gh auth status &>/dev/null; then
+            auth_status="Authenticated"
+            auth_color="${C[green]}"
+        fi
+    else
+        auth_status="gh not installed"
+        auth_color="${C[yellow]}"
+    fi
+
+    # Get current git protocol
+    local git_protocol
+    git_protocol=$(config_get "gh" "git_protocol")
+    if [[ -z "$git_protocol" ]]; then
+        git_protocol="https"
+    fi
+
+    # Field labels and values
+    local fields=("auth_status" "git_protocol")
+    local labels=("Auth Status:" "Git Protocol:")
+    local values=("$auth_status" "$git_protocol")
+
+    local i=0
+    for field in "${fields[@]}"; do
+        buf_add "$(tput cup $row $col)"
+        buf_add "${C[cyan]}║${C[reset]} "
+
+        local is_selected=0
+        [[ $i -eq $CONFIG_SELECTED_IDX ]] && is_selected=1
+
+        # Label
+        if [[ $is_selected -eq 1 ]]; then
+            buf_add "${C[yellow]}▶ ${labels[$i]}${C[reset]}"
+        else
+            buf_add "  ${labels[$i]}"
+        fi
+
+        local label_len=${#labels[$i]}
+        local padding_after_label=$((20 - label_len - 2))
+        buf_add "$(printf ' %.0s' $(seq 1 $padding_after_label))"
+
+        # Value display
+        if [[ "$field" == "auth_status" ]]; then
+            buf_add "${auth_color}${values[$i]}${C[reset]}"
+            local value_padding=$((width - 25 - ${#values[$i]}))
+            buf_add "$(printf ' %.0s' $(seq 1 $value_padding))"
+        elif [[ "$field" == "git_protocol" ]]; then
+            if [[ "$is_selected" -eq 1 ]]; then
+                buf_add "${C[highlight]}${C[white]} ${values[$i]} ${C[reset]}"
+                local value_padding=$((width - 25 - ${#values[$i]} - 2))
+            else
+                buf_add "${values[$i]}"
+                local value_padding=$((width - 25 - ${#values[$i]}))
+            fi
+            buf_add "$(printf ' %.0s' $(seq 1 $value_padding))"
+        fi
+
+        buf_add " ${C[cyan]}║${C[reset]}"
+        ((row++))
+
+        # Extra hints
+        if [[ $is_selected -eq 1 ]]; then
+            buf_add "$(tput cup $row $col)"
+            if [[ "$field" == "auth_status" ]]; then
+                if [[ "$auth_status" == "Not Authenticated" ]]; then
+                    buf_add "${C[cyan]}║${C[reset]}     ${C[dim]}Press A to authenticate with GitHub${C[reset]}"
+                    local hint_padding=$((width - 41))
+                else
+                    buf_add "${C[cyan]}║${C[reset]}     ${C[dim]}Press L to logout${C[reset]}"
+                    local hint_padding=$((width - 21))
+                fi
+            elif [[ "$field" == "git_protocol" ]]; then
+                buf_add "${C[cyan]}║${C[reset]}     ${C[dim]}Press ENTER to toggle (https/ssh)${C[reset]}"
+                local hint_padding=$((width - 40))
+            fi
+            buf_add "$(printf ' %.0s' $(seq 1 $hint_padding))"
+            buf_add "${C[cyan]}║${C[reset]}"
+            ((row++))
+        fi
+
+        ((i++))
+    done
+
+    # Empty line
+    buf_add "$(tput cup $row $col)"
+    buf_add "${C[cyan]}║${C[reset]}$(printf ' %.0s' $(seq 1 $((width - 2))))${C[cyan]}║${C[reset]}"
+    ((row++))
+
+    # Info text
+    buf_add "$(tput cup $row $col)"
+    buf_add "${C[cyan]}║${C[reset]} ${C[dim]}GitHub CLI must be installed to use this feature${C[reset]}"
+    local info_padding=$((width - 51))
+    buf_add "$(printf ' %.0s' $(seq 1 $info_padding))"
+    buf_add "${C[cyan]}║${C[reset]}"
+    ((row++))
+
+    # Fill remaining space
+    while [[ $row -lt $((TERM_ROWS - 2)) ]]; do
+        buf_add "$(tput cup $row $col)"
+        buf_add "${C[cyan]}║${C[reset]}$(printf ' %.0s' $(seq 1 $((width - 2))))${C[cyan]}║${C[reset]}"
+        ((row++))
+    done
+
+    # Bottom border
+    buf_add "$(tput cup $row $col)"
+    buf_add "${C[cyan]}╚$(printf '═%.0s' $(seq 1 $((width - 2))))╝${C[reset]}"
+
+    # Help text
+    ((row++))
+    buf_add "$(tput cup $row $col)"
+    buf_add "${C[dim]}↑↓: Navigate  A: Authenticate  L: Logout  ENTER: Toggle Protocol  ESC: Back  Q: Quit${C[reset]}"
 }
 
 # handle_config_input - Route keyboard input in config mode
@@ -418,9 +560,10 @@ handle_config_input() {
         "down")
             local max_idx
             case "$CONFIG_SCREEN" in
-                main) max_idx=1 ;;
+                main) max_idx=0 ;;
                 git) max_idx=1 ;;
                 github) max_idx=1 ;;
+                gh) max_idx=1 ;;
                 *) max_idx=0 ;;
             esac
             if [[ $CONFIG_SELECTED_IDX -lt $max_idx ]]; then
@@ -440,6 +583,12 @@ handle_config_input() {
         "g"|"G")
             handle_config_generate_key
             ;;
+        "a"|"A")
+            handle_config_gh_auth
+            ;;
+        "l"|"L")
+            handle_config_gh_logout
+            ;;
         "t"|"T")
             # Toggle back to tools mode
             APP_MODE="tools"
@@ -457,12 +606,7 @@ handle_config_select() {
         main)
             case $CONFIG_SELECTED_IDX in
                 0)
-                    CONFIG_SCREEN="git"
-                    CONFIG_SELECTED_IDX=0
-                    NEEDS_REDRAW=1
-                    ;;
-                1)
-                    CONFIG_SCREEN="github"
+                    CONFIG_SCREEN="gh"
                     CONFIG_SELECTED_IDX=0
                     NEEDS_REDRAW=1
                     ;;
@@ -504,6 +648,25 @@ handle_config_select() {
                     ;;
             esac
             ;;
+        gh)
+            case $CONFIG_SELECTED_IDX in
+                0)
+                    # Auth status - do nothing on enter, use A or L keys
+                    ;;
+                1)
+                    # Toggle git protocol
+                    local current_protocol
+                    current_protocol=$(config_get "gh" "git_protocol")
+                    if [[ "$current_protocol" == "https" || -z "$current_protocol" ]]; then
+                        config_set "gh" "git_protocol" "ssh"
+                    else
+                        config_set "gh" "git_protocol" "https"
+                    fi
+                    CONFIG_MODIFIED=1
+                    NEEDS_REDRAW=1
+                    ;;
+            esac
+            ;;
     esac
 }
 
@@ -534,6 +697,15 @@ handle_config_save() {
         config_apply_git
     fi
 
+    # Apply gh git protocol if on gh screen
+    if [[ "$CONFIG_SCREEN" == "gh" ]]; then
+        local protocol
+        protocol=$(config_get "gh" "git_protocol")
+        if command -v gh &>/dev/null && [[ -n "$protocol" ]]; then
+            gh config set git_protocol "$protocol" 2>/dev/null || true
+        fi
+    fi
+
     NEEDS_REDRAW=1
 }
 
@@ -555,6 +727,89 @@ handle_config_generate_key() {
         CONFIG_MODIFIED=1
         NEEDS_REDRAW=1
     fi
+}
+
+# handle_config_gh_auth - Authenticate with GitHub CLI
+handle_config_gh_auth() {
+    if [[ "$CONFIG_SCREEN" != "gh" || $CONFIG_SELECTED_IDX -ne 0 ]]; then
+        return
+    fi
+
+    if ! command -v gh &>/dev/null; then
+        return
+    fi
+
+    # Exit TUI temporarily
+    tput rmcup 2>/dev/null
+    tput cnorm 2>/dev/null
+    stty sane 2>/dev/null
+    clear
+
+    echo ""
+    echo "Authenticating with GitHub CLI..."
+    echo ""
+
+    # Run gh auth login interactively
+    gh auth login
+
+    # Apply git protocol preference if set
+    local protocol
+    protocol=$(config_get "gh" "git_protocol")
+    if [[ -n "$protocol" ]]; then
+        gh config set git_protocol "$protocol" 2>/dev/null || true
+    fi
+
+    echo ""
+    echo "Press ENTER to return to the toolkit..."
+    read -r
+
+    # Restore TUI
+    tput smcup 2>/dev/null
+    tput civis 2>/dev/null
+    stty -echo 2>/dev/null
+
+    CONFIG_MODIFIED=1
+    NEEDS_REDRAW=1
+}
+
+# handle_config_gh_logout - Logout from GitHub CLI
+handle_config_gh_logout() {
+    if [[ "$CONFIG_SCREEN" != "gh" || $CONFIG_SELECTED_IDX -ne 0 ]]; then
+        return
+    fi
+
+    if ! command -v gh &>/dev/null; then
+        return
+    fi
+
+    # Check if authenticated first
+    if ! gh auth status &>/dev/null; then
+        return
+    fi
+
+    # Exit TUI temporarily
+    tput rmcup 2>/dev/null
+    tput cnorm 2>/dev/null
+    stty sane 2>/dev/null
+    clear
+
+    echo ""
+    echo "Logging out from GitHub CLI..."
+    echo ""
+
+    gh auth logout --hostname github.com
+
+    echo ""
+    echo "Press ENTER to return to the toolkit..."
+    read -r
+
+    # Restore TUI
+    tput smcup 2>/dev/null
+    tput civis 2>/dev/null
+    stty -echo 2>/dev/null
+
+    CONFIG_MODIFIED=1
+    NEEDS_REDRAW=1
 }
 
 # handle_config_edit - Handle text editing

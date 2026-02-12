@@ -31,6 +31,10 @@ user_email=
 token=
 ssh_key_path=
 
+[gh]
+git_protocol=https
+authenticated=false
+
 [toolkit]
 config_version=1.0
 EOF
@@ -99,6 +103,10 @@ user_email=${CONFIG_VALUES[git_user_email]:-}
 [github]
 token=${CONFIG_VALUES[github_token]:-}
 ssh_key_path=${CONFIG_VALUES[github_ssh_key_path]:-}
+
+[gh]
+git_protocol=${CONFIG_VALUES[gh_git_protocol]:-https}
+authenticated=${CONFIG_VALUES[gh_authenticated]:-false}
 
 [toolkit]
 config_version=1.0
